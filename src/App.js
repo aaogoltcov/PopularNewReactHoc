@@ -2,34 +2,40 @@ import './App.css';
 import React, { useState } from 'react';
 import shortid from 'shortid';
 
-function New(props) {
-  const {Component} = props;
-  return (
-      <div className="wrap-item wrap-item-new">
-        <span className="label">New!</span>
-        <Component key={shortid.generate()} {...props}/>
-      </div>
-  )
+function New(Component) {
+    return function (props) {
+        return (
+            <div className="wrap-item wrap-item-new">
+                <span className="label">New!</span>
+                <Component key={shortid.generate()} {...props}/>
+            </div>
+        )
+    }
 }
 
-function Popular(props) {
-    const {Component} = props;
-    return (
-      <div className="wrap-item wrap-item-popular">
-        <span className="label">Popular!</span>
-        <Component key={shortid.generate()} {...props}/>
-      </div>
-  )
+function Popular(Component) {
+    return function (props) {
+        return (
+            <div className="wrap-item wrap-item-popular">
+                <span className="label">Popular!</span>
+                <Component key={shortid.generate()} {...props}/>
+            </div>
+        )
+    }
 }
 
-function Decision(props) {
-    const {views, Component} = props;
-    if (views >= 1000) {
-        return <Popular key={shortid.generate()} {...props} Component={Component}/>;
-    } else if (views <= 100) {
-        return <New key={shortid.generate()} {...props} Component={Component}/>;
-    } else {
-        return <Component key={shortid.generate()} {...props}/>;
+function Decision(Component) {
+    const PopularComponent = Popular(Component);
+    const NewComponent = New(Component);
+    return function (props) {
+        const {views} = props;
+        if (views >= 1000) {
+            return <PopularComponent key={shortid.generate()} {...props} />;
+        } else if (views <= 100) {
+            return <NewComponent key={shortid.generate()} {...props} />;
+        } else {
+            return <Component key={shortid.generate()} {...props}/>;
+        }
     }
 }
 
@@ -55,16 +61,18 @@ function List(props) {
   return props.list.map(item => {
     switch (item.type) {
       case 'video':
+        const DecisionVideoComponent = Decision(Video);
         return (
             <>
-              <Decision key={shortid.generate()} {...item} Component={Video} />
+              <DecisionVideoComponent key={shortid.generate()} {...item} />
             </>
         );
 
       case 'article':
-        return (
+          const DecisionArticleComponent = Decision(Article);
+          return (
             <>
-              <Decision key={shortid.generate()} {...item} Component={Article}/>
+              <DecisionArticleComponent key={shortid.generate()} {...item} />
             </>
         );
     }
